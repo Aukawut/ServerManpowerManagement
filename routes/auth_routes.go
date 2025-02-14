@@ -8,5 +8,6 @@ import (
 func SetupAuthRoutes(app *fiber.App) {
 	user := app.Group("/auth")
 	user.Post("/domain", handlers.LoginDomain)
+	user.Get("/token", handlers.CheckToken)
 
 }

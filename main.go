@@ -7,6 +7,7 @@ import (
 
 	"github.com/Aukawut/ServerManpowerManagement/routes"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -19,6 +20,9 @@ func main() {
 
 	// Crate Instance fiber
 	app := fiber.New()
+
+	// Enable CORS for all routes
+	app.Use(cors.New())
 
 	// Register Routes
 	routes.SetupRoutes(app)
