@@ -16,3 +16,17 @@ type ReportHeadCountByPosition struct {
 	POSITION   string
 	HEAD_COUNT int
 }
+
+type ReportHeadCountByDeptAndUsersType struct {
+	DEPARTMENT string
+	INDIRECT   int
+	DIRECT     int
+	SGA        int
+	OTHER      int
+	TOTAL      int
+}
+
+type ReportHeadCountBySex struct {
+	UHR_Sex string
+	AMOUNT  int
+}

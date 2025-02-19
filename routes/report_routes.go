@@ -11,8 +11,10 @@ func SetupReportRoutes(app *fiber.App) {
 	user := app.Group("/report")
 
 	// Route childen
-	user.Get("/headcount/department/sex", middleware.DecodeToken, handlers.SummaryHeadCountByDeptAndSex)
-	user.Get("/headcount/department", middleware.DecodeToken, handlers.SummaryHeadCountByDept)
-	user.Get("/headcount/position", middleware.DecodeToken, handlers.SummaryHeadCountByPosition)
+	user.Get("/headcount/department/sex/:date", middleware.DecodeToken, handlers.SummaryHeadCountByDeptAndSex)
+	user.Get("/headcount/department/utype/:date", middleware.DecodeToken, handlers.SummaryHeadByUserTypeAndDept)
+	user.Get("/headcount/department/:date", middleware.DecodeToken, handlers.SummaryHeadCountByDept)
+	user.Get("/headcount/position/:date", middleware.DecodeToken, handlers.SummaryHeadCountByPosition)
+	user.Get("/headcount/sex/:date", middleware.DecodeToken, handlers.SummaryHeadCountSex)
 
 }

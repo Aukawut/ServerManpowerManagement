@@ -12,5 +12,6 @@ func SetupUserRoutes(app *fiber.App) {
 
 	// Route childen
 	user.Get("/", middleware.DecodeToken, handlers.GetUsers)
+	user.Get("/manpower/:date", middleware.DecodeToken, handlers.GetManpowerByDate)
 
 }
