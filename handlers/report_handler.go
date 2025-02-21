@@ -100,7 +100,7 @@ func SummaryHeadCountByDept(c *fiber.Ctx) error {
 
 	db, err := sql.Open("sqlserver", connString)
 	if err != nil {
-		fmt.Println("Error Creating connection: " + err.Error())
+		fmt.Println("Error Creating Connection: " + err.Error())
 	}
 
 	defer db.Close()
@@ -122,7 +122,7 @@ ORDER BY HEAD_COUNT DESC`, sql.Named("date", date))
 		)
 
 		if errScan != nil {
-			fmt.Println("Error Scan : ", errScan.Error())
+			fmt.Println("Error Scan error : ", errScan.Error())
 		} else {
 			results = append(results, result)
 		}
@@ -225,7 +225,7 @@ func SummaryHeadByUserTypeAndDept(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"err": true,
-			"msg": "Invalid user data",
+			"msg": "JWT Invalid user data",
 		})
 	}
 
@@ -233,7 +233,7 @@ func SummaryHeadByUserTypeAndDept(c *fiber.Ctx) error {
 
 	db, err := sql.Open("sqlserver", connString)
 	if err != nil {
-		fmt.Println("Error creating connection: " + err.Error())
+		fmt.Println("Error Creating connection: " + err.Error())
 	}
 
 	defer db.Close()
@@ -261,7 +261,7 @@ func SummaryHeadByUserTypeAndDept(c *fiber.Ctx) error {
 		)
 
 		if errScan != nil {
-			fmt.Println("Error : ", errScan.Error())
+			fmt.Println("Error Scan : ", errScan.Error())
 		} else {
 			results = append(results, result)
 		}
@@ -296,7 +296,7 @@ func SummaryHeadCountSex(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"err": true,
-			"msg": "Invalid user data",
+			"msg": "Invalid users data",
 		})
 	}
 
@@ -304,7 +304,7 @@ func SummaryHeadCountSex(c *fiber.Ctx) error {
 
 	db, err := sql.Open("sqlserver", connString)
 	if err != nil {
-		fmt.Println("Error creating connection: " + err.Error())
+		fmt.Println("Error Open Connection: " + err.Error())
 	}
 
 	defer db.Close()
@@ -328,6 +328,230 @@ func SummaryHeadCountSex(c *fiber.Ctx) error {
 		errScan := rows.Scan(
 			&result.UHR_Sex,
 			&result.AMOUNT,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan value: ", errScan.Error())
+		} else {
+			results = append(results, result)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(results) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": results,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": results,
+		})
+	}
+
+}
+
+func SummaryManpowerByGroupCategory(c *fiber.Ctx) error {
+
+	var results []model.ManpowerByGroupCategory
+	startDate := c.Params("start")
+	endDate := c.Params("end")
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Json data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(`
+	SELECT m.[DATE],m.Daily_Operator,m.JP,m.Temporary,m.Permanent,m.Daily_Operator + m.JP + m.Permanent + m.Temporary as [Total] FROM (
+	SELECT  a.*,(b.Person - (Daily_Operator + JP + Temporary)) as [Permanent] FROM (
+	SELECT * 
+	FROM dbo.Func_GetManpowerSummaryByGroupCategory(@start, @end)
+) a LEFT JOIN (
+	SELECT [DATE],COUNT(*) as [Person] FROM [dbo].TBL_MANPOWER 
+	WHERE UHR_StatusToUse = 'ENABLE' GROUP BY [DATE]
+) b ON a.DATE = b.DATE
+  ) m`, sql.Named("start", startDate), sql.Named("end", endDate))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var result model.ManpowerByGroupCategory
+
+		errScan := rows.Scan(
+			&result.DATE,
+			&result.Daily_Operator,
+			&result.JP,
+			&result.Temporary,
+			&result.Permanent,
+			&result.Total,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan Value : ", errScan.Error())
+		} else {
+			results = append(results, result)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(results) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": results,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": results,
+		})
+	}
+
+}
+
+func SummaryManpowerByDate(c *fiber.Ctx) error {
+
+	var results []model.ManpowerByDate
+	startDate := c.Params("start")
+	endDate := c.Params("end")
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid user data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error creating connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	stmt := fmt.Sprintf(`SELECT   m.[DATE] as [Date],
+			COUNT(*) as [Person]
+        FROM TBL_MANPOWER m
+        LEFT JOIN V_Position p 
+            ON m.UHR_POSITION COLLATE Thai_CI_AS = p.PHR_PName COLLATE Thai_CI_AS
+        WHERE m.UHR_StatusToUse = 'ENABLE'
+          AND m.[DATE] BETWEEN  '%s' AND '%s'
+        GROUP BY m.[DATE] ORDER BY [Date],[Person] DESC`, startDate, endDate)
+
+	rows, errQuery := db.Query(stmt)
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var result model.ManpowerByDate
+
+		errScan := rows.Scan(
+			&result.Date,
+			&result.Person,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error : ", errScan.Error())
+		} else {
+			results = append(results, result)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(results) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": results,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": results,
+		})
+	}
+
+}
+
+func SummaryManpowerByGroupPosition(c *fiber.Ctx) error {
+
+	var results []model.ManpowerByGroupPosition
+	startDate := c.Params("start")
+	endDate := c.Params("end")
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid user data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error creating connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	stmt := fmt.Sprintf(`SELECT ISNULL(p.PHR_PGroupCode, 'N/A') AS PHR_PGroupCode,
+			COUNT(*) as [Person]
+        FROM TBL_MANPOWER m
+        LEFT JOIN V_Position p 
+            ON m.UHR_POSITION COLLATE Thai_CI_AS = p.PHR_PName COLLATE Thai_CI_AS
+        WHERE m.UHR_StatusToUse = 'ENABLE'
+          AND m.[DATE] BETWEEN  '%s' AND '%s'
+        GROUP BY p.PHR_PGroupCode ORDER BY [Person] DESC`, startDate, endDate)
+
+	rows, errQuery := db.Query(stmt)
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var result model.ManpowerByGroupPosition
+
+		errScan := rows.Scan(
+
+			&result.PHR_PGroupCode,
+			&result.Person,
 		)
 
 		if errScan != nil {

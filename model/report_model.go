@@ -30,3 +30,22 @@ type ReportHeadCountBySex struct {
 	UHR_Sex string
 	AMOUNT  int
 }
+
+type ManpowerByGroupCategory struct {
+	DATE           string
+	Daily_Operator int
+	JP             int
+	Temporary      int
+	Permanent      int
+	Total          int
+}
+
+type ManpowerByDate struct {
+	Date   string
+	Person int
+}
+
+type ManpowerByGroupPosition struct {
+	PHR_PGroupCode string
+	Person         int
+}

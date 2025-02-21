@@ -8,4 +8,5 @@ func SetupRoutes(app *fiber.App) {
 	SetupDepartmentRoutes(app)
 	SetupOrganizeRoutes(app)
 	SetupReportRoutes(app)
+	SetupManPowerRoutes(app)
 }
