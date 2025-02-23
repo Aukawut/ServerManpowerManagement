@@ -9,4 +9,5 @@ func SetupRoutes(app *fiber.App) {
 	SetupOrganizeRoutes(app)
 	SetupReportRoutes(app)
 	SetupManPowerRoutes(app)
+	SetupRolesRoutes(app)
 }

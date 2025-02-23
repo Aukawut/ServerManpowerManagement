@@ -10,6 +10,10 @@ type BodyAddManpower struct {
 	ManDate  string                 `json:"manDate"`
 }
 
+type BodyCloneManpower struct {
+	ActionBy string `json:"actionBy"`
+}
+
 type ManpowerMaster struct {
 	Id                  int
 	DATE                string

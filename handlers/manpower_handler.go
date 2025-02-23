@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"net/url"
 
@@ -503,7 +504,7 @@ func DeleteManpowerById(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"err": true, "msg": errRow.Error()})
 	}
 
-	stmt := `EXEC [dbo].[sProcDeleteManpowerAndBackup] @Id = @Id, @action = @Action`
+	stmt := `EXEC [dbo].[sProc_DeleteManpowerAndBackup] @Id = @Id, @action = @Action`
 
 	_, err = db.Exec(stmt, sql.Named("Id", id), sql.Named("Action", user))
 
@@ -511,4 +512,94 @@ func DeleteManpowerById(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
 	}
 	return c.JSON(fiber.Map{"err": false, "msg": "Deleted !", "status": "Ok"})
+}
+
+func CloningManpowerByDate(c *fiber.Ctx) error {
+
+	source := c.Params("source")
+	start := c.Params("start")
+	end := c.Params("end")
+	duration := c.Params("duration")
+
+	var req model.BodyCloneManpower
+
+	// แปลงข้อมูล JSON ที่รับมา
+	if err := c.BodyParser(&req); err != nil {
+		return c.JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid request body",
+		})
+	}
+
+	index := 0
+
+	//Loading connection string
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Connection: " + err.Error())
+	}
+
+	defer db.Close()
+	i, err := strconv.Atoi(duration)
+
+	if err != nil {
+
+		return c.JSON(fiber.Map{"err": true, "msg": "Convert String to Int error."})
+	}
+	var duplicated int
+	// Loop
+	for index < i {
+		var date string
+
+		errQuery := db.QueryRow(`SELECT TOP 1 [DATE] FROM [dbo].[TBL_MANPOWER] WHERE [DATE] IN (
+		SELECT CONVERT(DATE,DATEADD(DAY,@index,@start)))`,
+			sql.Named("index", index),
+			sql.Named("start", start)).Scan(&date)
+
+		if errQuery != nil {
+			fmt.Println(errQuery.Error())
+
+		}
+		if date != "" {
+			duplicated++
+		}
+
+		index++
+
+	}
+	defer db.Close()
+
+	if duplicated > 0 {
+		return c.JSON(fiber.Map{"err": true, "msg": "Manpower is duplicated!"})
+	} else {
+
+		stmt := fmt.Sprintf(`
+		DECLARE	@return_value int,
+		@resultMessage nvarchar(100)
+
+		SELECT	@resultMessage = N'''%s'''
+
+		EXEC	@return_value = [dbo].[sProc_CloneManpowerDataByDate]
+				@souceDate = '%s',
+				@start = '%s',
+				@end = '%s',
+				@actionBy = '%s',
+				@resultMessage = @resultMessage OUTPUT
+
+		SELECT	@resultMessage as N'@resultMessage'
+
+		SELECT	'Return Value' = @return_value
+		`, "Success", source, start, end, req.ActionBy)
+
+		_, err = db.Exec(stmt)
+
+		if err != nil {
+			return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+		}
+
+		return c.JSON(fiber.Map{"err": false, "msg": "Manpower uploaded!", "status": "Ok"})
+	}
+
 }
