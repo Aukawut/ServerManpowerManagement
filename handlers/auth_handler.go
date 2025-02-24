@@ -144,7 +144,7 @@ CONCAT(UHR_FirstName_en,' ',UHR_LastName_en) as [UHR_FullName],UHR_Sex,r.ROLE_NA
 FROM [DB_MANPOWER_MGT].[dbo].[V_AllUserPSTH] h
 LEFT JOIN TBL_USERS u ON h.UHR_EmpCode COLLATE Thai_CI_AS = u.EMPLOYEE_CODE COLLATE Thai_CI_AS
 LEFT JOIN TBL_ROLES r ON u.ROLE_ID = r.ROLE_ID
-WHERE AD_UserLogon = @username AND UHR_StatusToUse = 'ENABLE' AND u.EMPLOYEE_CODE IS NOT NULL`, sql.Named("username", req.Username))
+WHERE AD_UserLogon = @username AND UHR_StatusToUse = 'ENABLE' AND u.EMPLOYEE_CODE IS NOT NULL AND u.[ACTIVE] = 'Y'`, sql.Named("username", req.Username))
 
 	if errQuery != nil {
 		fmt.Println("Query failed: " + errQuery.Error())

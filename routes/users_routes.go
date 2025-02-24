@@ -12,6 +12,9 @@ func SetupUserRoutes(app *fiber.App) {
 
 	// Route childen
 	user.Get("/", middleware.DecodeToken, handlers.GetUsers)
+	user.Get("/system/authen", middleware.DecodeToken, handlers.GetUsersAuthen)
 	user.Get("/manpower/:date", middleware.DecodeToken, handlers.GetManpowerByDate)
+	user.Put("/auth/active/:employeeCode", middleware.DecodeToken, handlers.ActiveUser)
+	user.Post("/auth/insert", middleware.DecodeToken, handlers.InsertAuthenUser)
 
 }

@@ -14,6 +14,11 @@ type BodyCloneManpower struct {
 	ActionBy string `json:"actionBy"`
 }
 
+type SummaryManTermination struct {
+	UHR_Department string
+	PERSON         int
+}
+
 type ManpowerMaster struct {
 	Id                  int
 	DATE                string

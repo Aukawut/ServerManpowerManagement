@@ -41,3 +41,28 @@ type UsersMaster struct {
 	UHR_OrgGroup        string
 	UHR_OrgName         string
 }
+
+type UsersAuthentication struct {
+	EMPLOYEE_CODE   string
+	UHR_FullName_th string
+	UHR_POSITION    string
+	UHR_OrgGroup    string
+	UHR_OrgName     string
+	UHR_OrgCode     string
+	ROLE_ID         int
+	ROLE_NAME       string
+	ACTIVE          string
+	UHR_Department  string
+}
+
+type ActiveUserBody struct {
+	ActionBy string `json:"actionBy"`
+	Active   string `json:"active"`
+}
+
+type InsertAuthenUserBody struct {
+	EmployeeCode string `json:"employeeCode"`
+	Active       string `json:"active"`
+	Role         int    `json:"role"`
+	ActionBy     string `json:"actionBy"`
+}

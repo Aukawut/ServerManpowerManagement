@@ -17,6 +17,81 @@ type CountUser struct {
 	AMONT int
 }
 
+func GetManpowerTerminations(c *fiber.Ctx) error {
+
+	var users []model.SummaryManTermination
+
+	var date = c.Params("date")
+
+	fmt.Println(date)
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Users data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Create connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(`SELECT 
+      [UHR_Department],
+	  COUNT(*) as [PERSON]
+    
+  	  FROM [DB_MANPOWER_MGT].[dbo].[V_AllUserPSTH] WHERE  UHR_LastDate IS NOT NULL AND UHR_Department IS NOT NULL 
+ 	  AND UHR_StatusToUse = 'DISABLE'
+     --AND CONVERT(VARCHAR(10),[UHR_LastDate],120) = @date
+	 GROUP BY [UHR_Department] ORDER BY  COUNT(*) DESC
+`, sql.Named("date", date))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.SummaryManTermination
+
+		errScan := rows.Scan(
+			&user.UHR_Department,
+			&user.PERSON,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error : ", errScan.Error())
+		} else {
+			users = append(users, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(users) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": users,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": users,
+		})
+	}
+
+}
+
 func CheckDuplicated(date string, code string) bool {
 	// โหลดค่าสำหรับเชื่อมต่อฐานข้อมูล
 	connString := config.LoadDatabaseConfig()
