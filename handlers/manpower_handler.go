@@ -154,9 +154,10 @@ func CheckUserOk(req model.BodyAddManpower) (bool, string) {
 
 	// Check User not found
 	for index, u := range req.Users {
-		var countUser int
 
-		errorQuery := db.QueryRow(`SELECT COUNT(*)  FROM V_Users WHERE UHR_StatusToUse = 'ENABLE' AND UHR_EmpCode = @code`, sql.Named("code", u.EmployeeCode)).Scan(&countUser)
+		var countUser int
+		stmt := fmt.Sprintf(`SELECT COUNT(*)  FROM V_Users WHERE UHR_StatusToUse = 'ENABLE' AND UHR_EmpCode = '%s'`, u.EmployeeCode)
+		errorQuery := db.QueryRow(stmt).Scan(&countUser)
 
 		if errorQuery != nil {
 			return false, ""
@@ -177,8 +178,10 @@ func CheckUserOk(req model.BodyAddManpower) (bool, string) {
   </table>`
 
 	if rowsError != "" {
+		fmt.Println("rowsError", html)
 		return true, html
 	} else {
+		fmt.Println("not Error", "")
 		return false, ""
 	}
 
@@ -194,8 +197,6 @@ func InsertManpower(employeeCode string, date string, actionBy string) bool {
 		return false
 	}
 
-	defer db.Close()
-
 	stmt := fmt.Sprintf(`INSERT INTO [dbo].[TBL_MANPOWER] ([DATE],[UHR_EmpCode],[UHR_OrgCode],[UHR_FullName_th],[UHR_FullName_en],[UHR_Department],[UHR_GroupDepartment],[UHR_POSITION]
            ,[UHR_GMail]
            ,[UHR_Sex]
@@ -208,10 +209,11 @@ func InsertManpower(employeeCode string, date string, actionBy string) bool {
            ,[UHR_EmpCode],[UHR_OrgCode],[UHR_FullName_th],[UHR_FullName_en],[UHR_Department],[UHR_GroupDepartment],[UHR_POSITION],[UHR_GMail],[UHR_Sex],[UHR_StatusToUse],[UHR_OrgGroup]
            ,[UHR_OrgName]
            ,GETDATE()
-           ,'%s' FROM V_Users WHERE UHR_EmpCode = @code`, date, actionBy)
+           ,'%s' FROM V_Users WHERE UHR_EmpCode = '%s'`, date, actionBy, employeeCode)
 
-	_, errInsert := db.Query(stmt, sql.Named("code", employeeCode))
+	_, errInsert := db.Exec(stmt)
 
+	defer db.Close()
 	return errInsert == nil
 
 }
@@ -273,6 +275,7 @@ func processUsers(req model.BodyAddManpower, db *sql.DB) (int, int) {
 	inserted, updated := 0, 0
 
 	for _, u := range req.Users {
+
 		exists, err := CheckUserExists(db, req.ManDate, u.EmployeeCode)
 		if err != nil {
 			fmt.Println(err.Error())
