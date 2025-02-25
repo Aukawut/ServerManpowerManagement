@@ -1,25 +1,26 @@
-api_manpower_management:
-    image: api_manpower_management
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    environment:
-      NODE_ENV: production
-      PORT: 5250
-      DB_USER: manpower
-      DB_PASS: p$$th@2024**
-      DB_NAME: DB_MANPOWER_MGT
-      DB_SERVER: PSTH-SRRYAPP04
-      LDAP_IP: 10.144.1.6
-      LDAP_DNS: psth.com
-      SECRET_KEY: c0e2b01d3dc34977be4b4ed08abcbdcb
-    restart: always
-nginxManpower:
-    image: nginx:latest
-    volumes:
-      - ./conf.d:/etc/nginx/conf.d
-    depends_on:
-      - api_manpower_management
-    ports:
-      - 5250:5250
-    restart: always
+services:
+  api_manpower_management:
+      image: api_manpower_management
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+      environment:
+        NODE_ENV: production
+        PORT: 5250
+        DB_USER: manpower
+        DB_PASS: p$$th@2024**
+        DB_NAME: DB_MANPOWER_MGT
+        DB_SERVER: PSTH-SRRYAPP04
+        LDAP_IP: 10.144.1.6
+        LDAP_DNS: psth.com
+        SECRET_KEY: c0e2b01d3dc34977be4b4ed08abcbdcb
+      restart: always
+  nginxManpower:
+      image: nginx:latest
+      volumes:
+        - ./conf.d:/etc/nginx/conf.d
+      depends_on:
+        - api_manpower_management
+      ports:
+        - 5250:5250
+      restart: always
