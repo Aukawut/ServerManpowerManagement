@@ -7,7 +7,7 @@ api_manpower_management:
       NODE_ENV: production
       PORT: 5250
       DB_USER: manpower
-      DB_PASS: p$th@2024**
+      DB_PASS: p$$th@2024**
       DB_NAME: DB_MANPOWER_MGT
       DB_SERVER: PSTH-SRRYAPP04
       LDAP_IP: 10.144.1.6
