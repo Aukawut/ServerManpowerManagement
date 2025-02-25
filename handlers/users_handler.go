@@ -276,7 +276,7 @@ func ActiveUser(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"err": true,
-			"msg": "Invalid user data",
+			"msg": "Invalid JsonWenToken data",
 		})
 	}
 
@@ -284,7 +284,7 @@ func ActiveUser(c *fiber.Ctx) error {
 
 	db, err := sql.Open("sqlserver", connString)
 	if err != nil {
-		fmt.Println("Error creating connection: " + err.Error())
+		fmt.Println(err.Error())
 	}
 
 	defer db.Close()
@@ -371,5 +371,48 @@ func InsertAuthenUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"err": false, "msg": "User authen inserted", "status": "Ok"})
+
+}
+
+func DeleteAuthenUser(c *fiber.Ctx) error {
+
+	codeParam := c.Params("code")
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid user data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error creating connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	var code string
+
+	errorQuery := db.QueryRow(`SELECT [EMPLOYEE_CODE] FROM [dbo].[TBL_USERS]
+	WHERE [EMPLOYEE_CODE] = @code`, sql.Named("code", codeParam)).Scan(&code)
+
+	if errorQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": "User isn't found!"})
+
+	}
+	_, errorInsert := db.Exec(`DELETE FROM [dbo].[TBL_USERS] WHERE [EMPLOYEE_CODE] = @code`,
+		sql.Named("code", codeParam),
+	)
+
+	if errorInsert != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errorInsert.Error()})
+	}
+
+	return c.JSON(fiber.Map{"err": false, "msg": "User authen deleted", "status": "Ok"})
 
 }

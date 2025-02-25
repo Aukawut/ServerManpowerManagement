@@ -16,5 +16,6 @@ func SetupUserRoutes(app *fiber.App) {
 	user.Get("/manpower/:date", middleware.DecodeToken, handlers.GetManpowerByDate)
 	user.Put("/auth/active/:employeeCode", middleware.DecodeToken, handlers.ActiveUser)
 	user.Post("/auth/insert", middleware.DecodeToken, handlers.InsertAuthenUser)
+	user.Delete("/auth/delete/:code", middleware.DecodeToken, handlers.DeleteAuthenUser)
 
 }
