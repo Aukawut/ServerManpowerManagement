@@ -1,5 +1,5 @@
-api_manpower:
-    image: api_manpower
+api_manpower_management:
+    image: api_manpower_management
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -19,7 +19,7 @@ nginxManpower:
     volumes:
       - ./conf.d:/etc/nginx/conf.d
     depends_on:
-      - api_manpower
+      - api_manpower_management
     ports:
       - 5250:5250
     restart: always
