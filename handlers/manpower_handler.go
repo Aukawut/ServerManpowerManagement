@@ -96,9 +96,16 @@ func GetManpowerTerminationsByDepartment(c *fiber.Ctx) error {
 
 	var users []model.ManPowerTermination
 
-	var date = c.Params("date")
+	var dateStart = c.Params("start")
+	var dateEnd = c.Params("end")
+	var department = c.Params("department")
 
-	fmt.Println(date)
+	decodedDepartment, err := url.QueryUnescape(department)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+	}
 
 	_, ok := c.Locals("user").(jwt.MapClaims)
 
@@ -118,7 +125,7 @@ func GetManpowerTerminationsByDepartment(c *fiber.Ctx) error {
 
 	defer db.Close()
 
-	rows, errQuery := db.Query(`SELECT [UHR_EmpCode],
+	rows, errQuery := db.Query(fmt.Sprintf(`SELECT [UHR_EmpCode],
 	  [UHR_FullName_th],
       ISNULL([UHR_Department],'N/A') as [UHR_Department],
 	  ISNULL([UHR_Position],'N/A') as [UHR_Position] ,
@@ -126,9 +133,9 @@ func GetManpowerTerminationsByDepartment(c *fiber.Ctx) error {
 	  ISNULL([UHR_WorkEnd],'N/A') as [UHR_WorkEnd]
 	  FROM [DB_MANPOWER_MGT].[dbo].[V_AllUserPSTH] WHERE  UHR_LastDate IS NOT NULL AND UHR_Department IS NOT NULL 
  	  AND UHR_StatusToUse = 'DISABLE'
-     --AND CONVERT(VARCHAR(10),[UHR_LastDate],120) = @date
-	 ORDER BY  [UHR_Department] DESC
-`, sql.Named("date", date))
+     AND CONVERT(VARCHAR(10),UHR_WorkEnd,120) BETWEEN '%s' AND '%s'
+	 AND UHR_Department IN ('%s')
+	 ORDER BY  [UHR_Department] DESC`, dateStart, dateEnd, decodedDepartment))
 
 	if errQuery != nil {
 		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
@@ -148,6 +155,83 @@ func GetManpowerTerminationsByDepartment(c *fiber.Ctx) error {
 
 		if errScan != nil {
 			fmt.Println("Error : ", errScan.Error())
+		} else {
+			users = append(users, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(users) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": users,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": users,
+		})
+	}
+
+}
+
+func SummaryManpowerTerminationsByDepartment(c *fiber.Ctx) error {
+
+	var users []model.SummaryManPowerTermination
+
+	var dateStart = c.Params("start")
+	var dateEnd = c.Params("end")
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Json",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Open Connect: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(fmt.Sprintf(`SELECT a.UHR_Department,COUNT(*) as [PERSON] FROM (
+SELECT [UHR_EmpCode],
+	  [UHR_FullName_th],
+      ISNULL([UHR_Department],'N/A') as [UHR_Department],
+	  ISNULL([UHR_Position],'N/A') as [UHR_Position] ,
+	  ISNULL([UHR_WorkStart],'N/A') as [UHR_WorkStart],
+	  ISNULL([UHR_WorkEnd],'N/A') as [UHR_WorkEnd]
+	  FROM [DB_MANPOWER_MGT].[dbo].[V_AllUserPSTH] WHERE  UHR_LastDate IS NOT NULL AND UHR_Department IS NOT NULL 
+ 	  AND UHR_StatusToUse = 'DISABLE'
+     AND CONVERT(VARCHAR(10),UHR_WorkEnd,120) BETWEEN '%s' AND '%s') a GROUP BY a.UHR_Department
+	 ORDER BY  COUNT(*) DESC`, dateStart, dateEnd))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.SummaryManPowerTermination
+
+		errScan := rows.Scan(
+
+			&user.UHR_Department,
+			&user.PERSON,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan  : ", errScan.Error())
 		} else {
 			users = append(users, user)
 		}

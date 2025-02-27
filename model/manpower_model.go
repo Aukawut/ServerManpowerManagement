@@ -48,3 +48,8 @@ type ManPowerTermination struct {
 	UHR_WorkStart   string
 	UHR_WorkEnd     string
 }
+
+type SummaryManPowerTermination struct {
+	UHR_Department string
+	PERSON         int
+}
