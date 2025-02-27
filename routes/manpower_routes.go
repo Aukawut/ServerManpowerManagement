@@ -12,6 +12,7 @@ func SetupManPowerRoutes(app *fiber.App) {
 
 	// Route childen
 	user.Get("/", middleware.DecodeToken, handlers.GetUsers)
+	user.Get("/users/termination/:department", middleware.DecodeToken, handlers.GetManpowerTerminationsByDepartment)
 	user.Get("/termination/:date", middleware.DecodeToken, handlers.GetManpowerTerminations)
 	user.Post("/", middleware.DecodeToken, handlers.AddManpower)
 	user.Get("/position/group/:start/:end", middleware.DecodeToken, handlers.GetManpowerByGroupPositionAndDate)

@@ -66,6 +66,87 @@ func GetManpowerTerminations(c *fiber.Ctx) error {
 		)
 
 		if errScan != nil {
+			fmt.Println("Error Scan SummaryManTermination: ", errScan.Error())
+		} else {
+			users = append(users, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(users) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": users,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": users,
+		})
+	}
+
+}
+
+func GetManpowerTerminationsByDepartment(c *fiber.Ctx) error {
+
+	var users []model.ManPowerTermination
+
+	var date = c.Params("date")
+
+	fmt.Println(date)
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Json",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Open Connect: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(`SELECT [UHR_EmpCode],
+	  [UHR_FullName_th],
+      ISNULL([UHR_Department],'N/A') as [UHR_Department],
+	  ISNULL([UHR_Position],'N/A') as [UHR_Position] ,
+	  ISNULL([UHR_WorkStart],'N/A') as [UHR_WorkStart],
+	  ISNULL([UHR_WorkEnd],'N/A') as [UHR_WorkEnd]
+	  FROM [DB_MANPOWER_MGT].[dbo].[V_AllUserPSTH] WHERE  UHR_LastDate IS NOT NULL AND UHR_Department IS NOT NULL 
+ 	  AND UHR_StatusToUse = 'DISABLE'
+     --AND CONVERT(VARCHAR(10),[UHR_LastDate],120) = @date
+	 ORDER BY  [UHR_Department] DESC
+`, sql.Named("date", date))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.ManPowerTermination
+
+		errScan := rows.Scan(
+			&user.UHR_EmpCode,
+			&user.UHR_FullName_th,
+			&user.UHR_Department,
+			&user.UHR_Position,
+			&user.UHR_WorkStart,
+			&user.UHR_WorkEnd,
+		)
+
+		if errScan != nil {
 			fmt.Println("Error : ", errScan.Error())
 		} else {
 			users = append(users, user)

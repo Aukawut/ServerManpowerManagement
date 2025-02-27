@@ -39,3 +39,12 @@ type ManpowerMaster struct {
 	UPDATED_AT          interface{}
 	UPDATED_BY          interface{}
 }
+
+type ManPowerTermination struct {
+	UHR_EmpCode     string
+	UHR_FullName_th string
+	UHR_Department  string
+	UHR_Position    string
+	UHR_WorkStart   string
+	UHR_WorkEnd     string
+}
