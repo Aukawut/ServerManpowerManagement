@@ -44,7 +44,9 @@ func GetUsers(c *fiber.Ctx) error {
       ,[UHR_Sex]
       ,[UHR_StatusToUse]
       ,[UHR_OrgGroup]
-      ,[UHR_OrgName]
+      ,[UHR_OrgName],
+	  [UHR_WorkStart],
+	  [UHR_WorkEnd]
   FROM [DB_MANPOWER_MGT].[dbo].[V_Users]`)
 
 	if errQuery != nil {
@@ -67,6 +69,8 @@ func GetUsers(c *fiber.Ctx) error {
 			&user.UHR_StatusToUse,
 			&user.UHR_OrgGroup,
 			&user.UHR_OrgName,
+			&user.UHR_WorkStart,
+			&user.UHR_WorkEnd,
 		)
 
 		if errScan != nil {

@@ -40,6 +40,8 @@ type UsersMaster struct {
 	UHR_StatusToUse     string
 	UHR_OrgGroup        string
 	UHR_OrgName         string
+	UHR_WorkStart       string
+	UHR_WorkEnd         string
 }
 
 type UsersAuthentication struct {
