@@ -19,6 +19,22 @@ type SummaryManTermination struct {
 	PERSON         int
 }
 
+type ManpowerDetail struct {
+	Id                  int
+	UHR_EmpCode         string
+	UHR_OrgCode         string
+	UHR_FullName_th     string
+	UHR_FullName_en     string
+	UHR_Department      string
+	UHR_GroupDepartment string
+	UHR_POSITION        string
+	UHR_GMail           string
+	UHR_Sex             string
+	UHR_StatusToUse     string
+	UHR_OrgGroup        string
+	UHR_OrgName         string
+}
+
 type ManpowerMaster struct {
 	Id                  int
 	DATE                string

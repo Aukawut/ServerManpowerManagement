@@ -30,7 +30,7 @@ func GetManpowerTerminations(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"err": true,
-			"msg": "Invalid Users data",
+			"msg": "Invalid User data",
 		})
 	}
 
@@ -87,6 +87,321 @@ func GetManpowerTerminations(c *fiber.Ctx) error {
 			"msg":     "",
 			"status":  "",
 			"results": users,
+		})
+	}
+
+}
+
+func GetManpowerByPositionAndDate(c *fiber.Ctx) error {
+
+	var manpower []model.ManpowerDetail
+
+	var date = c.Params("date")
+	var positionParam = c.Params("position")
+
+	position, err := url.QueryUnescape(positionParam)
+
+	if err != nil {
+		fmt.Println("Error Convert String URL:", err)
+		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+	}
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Json Web Token data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Create connection: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(`
+	SELECT [Id]
+      ,[UHR_EmpCode]
+      ,[UHR_OrgCode]
+      ,[UHR_FullName_th]
+      ,[UHR_FullName_en]
+      ,[UHR_Department]
+      ,[UHR_GroupDepartment]
+      ,[UHR_POSITION]
+      ,[UHR_GMail]
+      ,[UHR_Sex]
+      ,[UHR_StatusToUse]
+      ,[UHR_OrgGroup]
+      ,[UHR_OrgName] FROM [DB_MANPOWER_MGT].[dbo].[TBL_MANPOWER] WHERE DATE =  @date AND UHR_POSITION = @position
+	`, sql.Named("position", position), sql.Named("date", date))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.ManpowerDetail
+
+		errScan := rows.Scan(
+			&user.Id,
+			&user.UHR_EmpCode,
+			&user.UHR_OrgCode,
+			&user.UHR_FullName_th,
+			&user.UHR_FullName_en,
+			&user.UHR_Department,
+			&user.UHR_GroupDepartment,
+			&user.UHR_POSITION,
+			&user.UHR_GMail,
+			&user.UHR_Sex,
+			&user.UHR_StatusToUse,
+			&user.UHR_OrgGroup,
+			&user.UHR_OrgName,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan ManpowerByPosition: ", errScan.Error())
+		} else {
+			manpower = append(manpower, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(manpower) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": manpower,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": manpower,
+		})
+	}
+
+}
+
+func GetManpowerByDepartmentAndDate(c *fiber.Ctx) error {
+
+	var manpower []model.ManpowerDetail
+
+	var date = c.Params("date")
+	var departmentParam = c.Params("department")
+
+	department, err := url.QueryUnescape(departmentParam)
+
+	if err != nil {
+		fmt.Println("Error QueryUnescape:", err)
+		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+	}
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Users data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Connect Database: " + err.Error())
+	}
+
+	defer db.Close()
+
+	rows, errQuery := db.Query(`
+	SELECT [Id]
+      ,[UHR_EmpCode]
+      ,[UHR_OrgCode]
+      ,[UHR_FullName_th]
+      ,[UHR_FullName_en]
+      ,[UHR_Department]
+      ,[UHR_GroupDepartment]
+      ,[UHR_POSITION]
+      ,[UHR_GMail]
+      ,[UHR_Sex]
+      ,[UHR_StatusToUse]
+      ,[UHR_OrgGroup]
+      ,[UHR_OrgName] FROM [DB_MANPOWER_MGT].[dbo].[TBL_MANPOWER] WHERE DATE =  @date AND UHR_Department = @department
+	`, sql.Named("department", department), sql.Named("date", date))
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.ManpowerDetail
+
+		errScan := rows.Scan(
+			&user.Id,
+			&user.UHR_EmpCode,
+			&user.UHR_OrgCode,
+			&user.UHR_FullName_th,
+			&user.UHR_FullName_en,
+			&user.UHR_Department,
+			&user.UHR_GroupDepartment,
+			&user.UHR_POSITION,
+			&user.UHR_GMail,
+			&user.UHR_Sex,
+			&user.UHR_StatusToUse,
+			&user.UHR_OrgGroup,
+			&user.UHR_OrgName,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan ManpowerByPosition: ", errScan.Error())
+		} else {
+			manpower = append(manpower, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(manpower) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": manpower,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": manpower,
+		})
+	}
+
+}
+
+func GetManpowerByDepartmentAndSex(c *fiber.Ctx) error {
+
+	var manpower []model.ManpowerDetail
+
+	var date = c.Params("date")
+	var departmentParam = c.Params("department")
+	var sex = c.Params("sex")
+
+	department, err := url.QueryUnescape(departmentParam)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+	}
+
+	_, ok := c.Locals("user").(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"err": true,
+			"msg": "Invalid Users data",
+		})
+	}
+
+	connString := config.LoadDatabaseConfig()
+
+	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		fmt.Println("Error Connect DB: " + err.Error())
+	}
+
+	defer db.Close()
+	var stmt string
+
+	if sex == "F" || sex == "M" {
+		stmt = fmt.Sprintf(`SELECT [Id]
+      ,[UHR_EmpCode]
+      ,[UHR_OrgCode]
+      ,[UHR_FullName_th]
+      ,[UHR_FullName_en]
+      ,[UHR_Department]
+      ,[UHR_GroupDepartment]
+      ,[UHR_POSITION]
+      ,[UHR_GMail]
+      ,[UHR_Sex]
+      ,[UHR_StatusToUse]
+      ,[UHR_OrgGroup]
+      ,[UHR_OrgName] FROM [DB_MANPOWER_MGT].[dbo].[TBL_MANPOWER] WHERE DATE =  '%s' 
+	  AND UHR_Department = '%s' AND [UHR_Sex] = '%s'`, date, department, sex)
+
+	} else {
+		stmt = fmt.Sprintf(`SELECT [Id]
+		,[UHR_EmpCode]
+		,[UHR_OrgCode]
+		,[UHR_FullName_th]
+		,[UHR_FullName_en]
+		,[UHR_Department]
+		,[UHR_GroupDepartment]
+		,[UHR_POSITION]
+		,[UHR_GMail]
+		,[UHR_Sex]
+		,[UHR_StatusToUse]
+		,[UHR_OrgGroup]
+		,[UHR_OrgName] FROM [DB_MANPOWER_MGT].[dbo].[TBL_MANPOWER] WHERE DATE =  '%s' 
+		AND UHR_Department = '%s' AND [UHR_Sex] NOT IN ('F','M')`, date, department)
+	}
+
+	rows, errQuery := db.Query(stmt)
+
+	if errQuery != nil {
+		return c.JSON(fiber.Map{"err": true, "msg": errQuery.Error()})
+	}
+
+	for rows.Next() {
+		var user model.ManpowerDetail
+
+		errScan := rows.Scan(
+			&user.Id,
+			&user.UHR_EmpCode,
+			&user.UHR_OrgCode,
+			&user.UHR_FullName_th,
+			&user.UHR_FullName_en,
+			&user.UHR_Department,
+			&user.UHR_GroupDepartment,
+			&user.UHR_POSITION,
+			&user.UHR_GMail,
+			&user.UHR_Sex,
+			&user.UHR_StatusToUse,
+			&user.UHR_OrgGroup,
+			&user.UHR_OrgName,
+		)
+
+		if errScan != nil {
+			fmt.Println("Error Scan ManpowerBySex: ", errScan.Error())
+		} else {
+			manpower = append(manpower, user)
+		}
+	}
+
+	defer rows.Close()
+
+	if len(manpower) > 0 {
+		return c.JSON(fiber.Map{
+			"err":     false,
+			"msg":     "",
+			"status":  "Ok",
+			"results": manpower,
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"err":     true,
+			"msg":     "",
+			"status":  "",
+			"results": manpower,
 		})
 	}
 
