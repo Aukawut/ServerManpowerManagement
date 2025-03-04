@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
 
 	"github.com/Aukawut/ServerManpowerManagement/config"
 	"github.com/Aukawut/ServerManpowerManagement/model"
@@ -512,6 +513,17 @@ func SummaryManpowerByGroupPosition(c *fiber.Ctx) error {
 	var results []model.ManpowerByGroupPosition
 	startDate := c.Params("start")
 	endDate := c.Params("end")
+	utypeParam := c.Params("utype")
+	departmentParam := c.Params("department")
+
+	department, _ := url.QueryUnescape(departmentParam)
+	utype, err := url.QueryUnescape(utypeParam)
+
+	if err != nil {
+		fmt.Println("Error Convert String URL:", err)
+		return c.JSON(fiber.Map{"err": true, "msg": err.Error()})
+	}
+
 	_, ok := c.Locals("user").(jwt.MapClaims)
 
 	if !ok {
@@ -536,9 +548,17 @@ func SummaryManpowerByGroupPosition(c *fiber.Ctx) error {
         LEFT JOIN V_Position p 
             ON m.UHR_POSITION COLLATE Thai_CI_AS = p.PHR_PName COLLATE Thai_CI_AS
         WHERE m.UHR_StatusToUse = 'ENABLE'
-          AND m.[DATE] BETWEEN  '%s' AND '%s'
-        GROUP BY p.PHR_PGroupCode ORDER BY [Person] DESC`, startDate, endDate)
+          AND m.[DATE] BETWEEN  '%s' AND '%s'`, startDate, endDate)
 
+	if department != "All" {
+		stmt += fmt.Sprintf(` AND m.UHR_Department = '%s'`, department)
+	}
+
+	if utype != "All" {
+		stmt += fmt.Sprintf(` AND m.UHR_OrgName = '%s'`, utype)
+	}
+
+	stmt += ` GROUP BY p.PHR_PGroupCode ORDER BY [Person] DESC`
 	rows, errQuery := db.Query(stmt)
 
 	if errQuery != nil {

@@ -17,6 +17,6 @@ func SetupReportRoutes(app *fiber.App) {
 	user.Get("/headcount/position/:date", middleware.DecodeToken, handlers.SummaryHeadCountByPosition)
 	user.Get("/headcount/sex/:date", middleware.DecodeToken, handlers.SummaryHeadCountSex)
 	user.Get("/headcount/:start/:end", middleware.DecodeToken, handlers.SummaryManpowerByDate)
-	user.Get("/manpower/position/group/:start/:end", middleware.DecodeToken, handlers.SummaryManpowerByGroupPosition)
+	user.Get("/manpower/position/group/:start/:end/:department/:utype", middleware.DecodeToken, handlers.SummaryManpowerByGroupPosition)
 
 }
