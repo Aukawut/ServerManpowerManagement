@@ -636,8 +636,8 @@ func CheckUserOk(req model.BodyAddManpower) (bool, string) {
 	for index, u := range req.Users {
 
 		var countUser int
-		//stmt := fmt.Sprintf(`SELECT COUNT(*)  FROM V_Users WHERE UHR_StatusToUse = 'ENABLE' AND UHR_EmpCode = '%s'`, u.EmployeeCode)
-		stmt := fmt.Sprintf(`SELECT COUNT(*)  FROM V_Users WHERE UHR_EmpCode = '%s'`, u.EmployeeCode)
+		stmt := fmt.Sprintf(`SELECT COUNT(*)  FROM V_Users WHERE UHR_StatusToUse = 'ENABLE' AND UHR_EmpCode = '%s'`, u.EmployeeCode)
+		//stmt := fmt.Sprintf(`SELECT COUNT(*)  FROM V_Users WHERE UHR_EmpCode = '%s'`, u.EmployeeCode)
 		errorQuery := db.QueryRow(stmt).Scan(&countUser)
 
 		if errorQuery != nil {
