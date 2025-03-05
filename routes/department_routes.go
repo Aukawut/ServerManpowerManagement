@@ -10,5 +10,6 @@ func SetupDepartmentRoutes(app *fiber.App) {
 	user := app.Group("/department")
 	user.Get("/", middleware.DecodeToken, handlers.GetDepartment)
 	user.Get("/users", middleware.DecodeToken, handlers.GetDepartmentOfUsers)
+	user.Get("/manpower/active/:start/:end", middleware.DecodeToken, handlers.GetDepartmentOfActiveManpower)
 
 }
