@@ -11,4 +11,5 @@ func SetupRoutes(app *fiber.App) {
 	SetupManPowerRoutes(app)
 	SetupRolesRoutes(app)
 	SetUpStatic(app)
+	SetupHeadCountRoutes(app)
 }
